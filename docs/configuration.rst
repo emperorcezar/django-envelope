@@ -36,3 +36,14 @@ These values defined in ``settings.py`` affect the application:
   
   Default value: *Message from contact form:*
 
+* ``ENVELOPE_RECIPIENTS_BY_CATEGORY``: Allows for the email recipients
+  to be determined by the category selected by the user. If this is
+  set the True. You will want to set your
+  ``ENVELOPE_EMAIL_RECIPIENTS`` like so::
+
+    ENVELOPE_EMAIL_RECIPIENTS = {
+        'category_id': ['example@example.com', 'example2@example.com'],
+    }
+
+  Now it should send based on the category selected by the user. This
+  is useful if you have different groups handling different requests.

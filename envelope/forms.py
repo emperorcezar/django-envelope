@@ -49,6 +49,9 @@ class BaseContactForm(forms.Form):
         context = self.get_context()
         message = render_to_string('envelope/email_body.txt', context)
         from_email = settings.DEFAULT_FROM_EMAIL
+        return self.send_mail(subject, message, from_email, EMAIL_RECIPIENTS)
+        
+    def send_mail(self, subject, message, from_email, EMAIL_RECIPIENTS):
         try:
             mail.send_mail(subject, message, from_email, EMAIL_RECIPIENTS)
             logger.info(_("Contact form submitted and sent (from: %s)") %
@@ -58,6 +61,7 @@ class BaseContactForm(forms.Form):
             return False
         else:
             return True
+
 
     def send(self):
         u"""
@@ -126,4 +130,24 @@ class ContactForm(BaseContactForm):
         except (AttributeError, ValueError):
             category = None
         return dict(CONTACT_CHOICES).get(category)
+
+    def send_mail(self, subject, message, from_email, EMAIL_RECIPIENTS):
+        u"""
+        Overridden to allow for sending by category
+        """
+        
+        try:
+            if getattr(settings, 'ENVELOPE_RECIPIENTS_BY_CATEGORY', False):
+                category = self.cleaned_data['category']
+                mail.send_mail(subject, message, from_email, EMAIL_RECIPIENTS['category'])
+            else:
+                mail.send_mail(subject, message, from_email, EMAIL_RECIPIENTS)
+
+            logger.info(_("Contact form submitted and sent (from: %s)") %
+                        self.cleaned_data['email'])
+        except SMTPException:
+            logger.exception(_("An error occured while sending the email"))
+            return False
+        else:
+            return True
 
